@@ -4,7 +4,7 @@ const completionSchema = new mongoose.Schema(
   {
     date: {
       type: String,
-      required: true, // format: YYYY-MM-DD
+      required: true, // YYYY-MM-DD
     },
     completedAt: {
       type: Date,
@@ -23,18 +23,18 @@ const habitSchema = new mongoose.Schema(
     },
     title: {
       type: String,
-      required: [true, 'Habit title is required'],
+      required: true,
       trim: true,
     },
     description: {
       type: String,
-      trim: true,
       default: '',
+      trim: true,
     },
     category: {
       type: String,
-      trim: true,
       default: 'General',
+      trim: true,
     },
     frequency: {
       type: String,
