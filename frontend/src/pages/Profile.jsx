@@ -7,7 +7,7 @@ import PageHeader from '../components/PageHeader';
 import FormActions from '../components/FormActions';
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
 
   const [profileData, setProfileData] = useState({
@@ -35,9 +35,7 @@ const Profile = () => {
       setProfileError('');
 
       try {
-        const response = await axiosInstance.get('/api/auth/profile', {
-          headers: { Authorization: `Bearer ${user.token}` },
-        });
+        const response = await axiosInstance.get('/api/auth/profile');
 
         setProfileData({
           name: response.data.name || '',
@@ -64,8 +62,14 @@ const Profile = () => {
     setLoadingProfile(true);
 
     try {
-      await axiosInstance.put('/api/auth/profile', profileData, {
-        headers: { Authorization: `Bearer ${user.token}` },
+      const response = await axiosInstance.put('/api/auth/profile', profileData);
+      updateUser(response.data);
+
+      setProfileData({
+        name: response.data.name || '',
+        email: response.data.email || '',
+        university: response.data.university || '',
+        address: response.data.address || '',
       });
 
       setProfileMessage('Profile updated successfully');
@@ -94,14 +98,11 @@ const Profile = () => {
     setLoadingPassword(true);
 
     try {
-      await axiosInstance.put(
-        '/api/auth/profile',
-        { password: passwordData.password },
-        {
-          headers: { Authorization: `Bearer ${user.token}` },
-        }
-      );
+      const response = await axiosInstance.put('/api/auth/profile', {
+        password: passwordData.password,
+      });
 
+      updateUser(response.data);
       setPasswordMessage('Password updated successfully');
       setPasswordData({
         password: '',

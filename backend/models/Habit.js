@@ -41,6 +41,11 @@ const habitSchema = new mongoose.Schema(
       enum: ['daily', 'weekly'],
       default: 'daily',
     },
+    daysOfWeek: {
+      type: [String],
+      enum: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      default: [],
+    },
     startDate: {
       type: Date,
       default: Date.now,

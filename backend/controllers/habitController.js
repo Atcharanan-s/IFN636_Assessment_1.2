@@ -1,9 +1,20 @@
 const Habit = require('../models/Habit');
 const Category = require('../models/Category');
 
+const validDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+const normalizeDaysOfWeek = (daysOfWeek) => {
+  if (!Array.isArray(daysOfWeek)) return [];
+  const cleaned = daysOfWeek
+    .filter((day) => validDays.includes(day))
+    .filter((day, index, arr) => arr.indexOf(day) === index);
+
+  return cleaned;
+};
+
 const createHabit = async (req, res) => {
   try {
-    const { title, description, category, frequency, startDate } = req.body;
+    const { title, description, category, frequency, startDate, daysOfWeek } = req.body;
 
     if (!title) {
       return res.status(400).json({ message: 'Habit title is required' });
@@ -19,12 +30,23 @@ const createHabit = async (req, res) => {
       return res.status(404).json({ message: 'Category not found' });
     }
 
+    const normalizedFrequency = frequency || 'daily';
+    const normalizedDaysOfWeek =
+      normalizedFrequency === 'weekly' ? normalizeDaysOfWeek(daysOfWeek) : [];
+
+    if (normalizedFrequency === 'weekly' && normalizedDaysOfWeek.length === 0) {
+      return res
+        .status(400)
+        .json({ message: 'Please select at least one day for a weekly habit' });
+    }
+
     const habit = await Habit.create({
       user: req.user._id,
       title,
       description,
       category,
-      frequency,
+      frequency: normalizedFrequency,
+      daysOfWeek: normalizedDaysOfWeek,
       startDate,
     });
 
@@ -76,7 +98,7 @@ const updateHabit = async (req, res) => {
       return res.status(404).json({ message: 'Habit not found' });
     }
 
-    const { title, description, category, frequency, startDate } = req.body;
+    const { title, description, category, frequency, startDate, daysOfWeek } = req.body;
 
     if (category) {
       const categoryExists = await Category.findById(category);
@@ -88,9 +110,22 @@ const updateHabit = async (req, res) => {
       habit.category = category;
     }
 
+    const nextFrequency = frequency || habit.frequency;
+    const normalizedDaysOfWeek =
+      nextFrequency === 'weekly'
+        ? normalizeDaysOfWeek(daysOfWeek !== undefined ? daysOfWeek : habit.daysOfWeek)
+        : [];
+
+    if (nextFrequency === 'weekly' && normalizedDaysOfWeek.length === 0) {
+      return res
+        .status(400)
+        .json({ message: 'Please select at least one day for a weekly habit' });
+    }
+
     habit.title = title || habit.title;
     habit.description = description ?? habit.description;
-    habit.frequency = frequency || habit.frequency;
+    habit.frequency = nextFrequency;
+    habit.daysOfWeek = normalizedDaysOfWeek;
     habit.startDate = startDate || habit.startDate;
 
     const updatedHabit = await habit.save();
