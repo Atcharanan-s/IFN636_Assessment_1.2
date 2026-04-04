@@ -14,8 +14,6 @@ jobs:
       matrix:
         node-version: [22]
 
-    environment: MONGO_URI
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
